@@ -5,17 +5,21 @@ import { Project } from "../models/project.models.js";
 
 const getProjects = asyncHandler(async (req, res) => {
   // get all projects
-  const allProjects = await Project.find({ createdBy: req.user?._id });
+  const projects = await Project.find({ createdBy: req.user._id });
+
   return res
     .status(200)
-    .json(new ApiResponse(200, allProjects, "All projects"));
+    .json(new ApiResponse(200, projects, "Projects found successfully"));
 });
 
 const getProjectById = asyncHandler(async (req, res) => {
   // get project by id
   const { id } = req.params;
   const project = await Project.findById(id);
-  return res.status(200).json(new ApiResponse(200, project, "Project found"));
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, project, "Project found successfully"));
 });
 
 const createProject = asyncHandler(async (req, res) => {
@@ -24,8 +28,6 @@ const createProject = asyncHandler(async (req, res) => {
   if (!name) {
     throw new ApiError(400, "Name is not defined");
   }
-
-  const user = req.user._id;
 
   const project = await Project.create({
     name,
@@ -61,9 +63,12 @@ const deleteProject = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const project = await Project.findById(id);
 
-  await project.deleteOne(project);
+  await project.remove();
 
-  return res.status(200).json(new ApiResponse(200, {}, "Delete sucessfully"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, project, "Project deleted successfully"));
+
 });
 
 const getProjectMembers = asyncHandler(async (req, res) => {
