@@ -1,38 +1,86 @@
-const getProjects = async (req, res) => {
+import { ApiResponse } from "../utils/api-response.js";
+import { ApiError } from "../utils/api-error.js";
+import { asyncHandler } from "../utils/async-handler.js";
+import { Project } from "../models/project.models.js";
+
+const getProjects = asyncHandler(async (req, res) => {
   // get all projects
-};
+  const allProjects = await Project.find({ createdBy: req.user?._id });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, allProjects, "All projects"));
+});
 
-const getProjectById = async (req, res) => {
+const getProjectById = asyncHandler(async (req, res) => {
   // get project by id
-};
+  const { id } = req.params;
+  const project = await Project.findById(id);
+  return res.status(200).json(new ApiResponse(200, project, "Project found"));
+});
 
-const createProject = async (req, res) => {
+const createProject = asyncHandler(async (req, res) => {
   // create project
-};
+  const { name, description } = req.body;
+  if (!name) {
+    throw new ApiError(400, "Name is not defined");
+  }
 
-const updateProject = async (req, res) => {
+  const user = req.user._id;
+
+  const project = await Project.create({
+    name,
+    description,
+    createdBy: req.user._id,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, project, "Project created successfully"));
+});
+
+const updateProject = asyncHandler(async (req, res) => {
   // update project
-};
+  
+  const { id } = req.params;
+  const { name, description } = req.body;
 
-const deleteProject = async (req, res) => {
+  const project = await Project.findById(id);
+
+  project.name = name;
+  project.description = description;
+
+  await project.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, project, "Project updated successfully"));
+});
+
+const deleteProject = asyncHandler(async (req, res) => {
   // delete project
-};
+  const { id } = req.params;
+  const project = await Project.findById(id);
 
-const getProjectMembers = async (req, res) => {
+  await project.deleteOne(project);
+
+  return res.status(200).json(new ApiResponse(200, {}, "Delete sucessfully"));
+});
+
+const getProjectMembers = asyncHandler(async (req, res) => {
   // get project members
-};
+});
 
-const addMemberToProject = async (req, res) => {
+const addMemberToProject = asyncHandler(async (req, res) => {
   // add member to project
-};
+});
 
-const deleteMember = async (req, res) => {
+const deleteMember = asyncHandler(async (req, res) => {
   // delete member from project
-};
+});
 
-const updateMemberRole = async (req, res) => {
+const updateMemberRole = asyncHandler(async (req, res) => {
   // update member role
-};
+});
 
 export {
   addMemberToProject,

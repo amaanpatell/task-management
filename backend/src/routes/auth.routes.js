@@ -4,7 +4,7 @@ import {
   userChangeCurrentPasswordValidator,
   userForgotPasswordValidator,
   userLoginValidator,
-  userRegistrationValidator,
+  userRegisterValidator,
   userResetForgottenPasswordValidator,
 } from "../validators/index.js";
 import {
@@ -25,7 +25,7 @@ const authRoutes = Router();
 
 authRoutes.post(
   "/register",
-  userRegistrationValidator(),
+  userRegisterValidator(),
   validate,
   registerUser
 );

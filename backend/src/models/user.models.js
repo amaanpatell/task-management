@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { AvailableUserRoles, UserRolesEnum } from "../utils/constants";
+import { AvailableUserRoles, UserRolesEnum } from "../utils/constants.js";
 
 const userSchema = new Schema(
   {
@@ -64,7 +64,7 @@ const userSchema = new Schema(
       type: Date,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 userSchema.pre("save", async function (next) {
@@ -81,10 +81,27 @@ userSchema.methods.isPasswordCorrect = async function () {
   });
 };
 
-userSchema.methods.generateRefreshToken = async function () {
-  return jwt.sign({ _id: this.id }, process.env.REFRESH_TOKEN_SECRET, {
-    expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
-  });
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign(
+    {
+      _id: this._id,
+      email: this.email,
+      username: this.username,
+      role: this.role,
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+  );
+};
+
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign(
+    {
+      _id: this._id,
+    },
+    process.env.REFRESH_TOKEN_SECRET,
+    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
+  );
 };
 
 userSchema.methods.generateTemporaryToken = async function () {

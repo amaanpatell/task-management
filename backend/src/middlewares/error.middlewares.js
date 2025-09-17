@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
-import { ApiError } from "../utils/ApiError.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/api-error.js";
 
 
 const errorHandler = (err, req, res, next) => {
