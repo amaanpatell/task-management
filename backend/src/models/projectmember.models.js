@@ -5,12 +5,12 @@ const projectMemberSchema = new Schema(
   {
     user: {
       type: Schema.Types.ObjectId,
-      ref: "Project",
+      ref: "User",
       required: true,
     },
     project: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Project",
       required: true,
     },
     role: {
