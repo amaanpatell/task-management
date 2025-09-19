@@ -36,7 +36,7 @@ const cookieOptions = {
 };
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { email, username, fullname, password, role } = req.body;
+  const { email, username, fullname, password } = req.body;
 
   //validation
   const existedUser = await User.findOne({ $or: [{ email }, { username }] });
@@ -51,7 +51,6 @@ const registerUser = asyncHandler(async (req, res) => {
     fullname,
     password,
     isEmailVerified: false,
-    role: role || UserRolesEnum.MEMBER,
   });
 
   const { unHashedToken, hashedToken, tokenExpiry } =

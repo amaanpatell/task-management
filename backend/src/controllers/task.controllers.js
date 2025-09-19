@@ -1,4 +1,3 @@
-// get all tasks
 const getTasks = async (req, res) => {
   // get all tasks
 };
