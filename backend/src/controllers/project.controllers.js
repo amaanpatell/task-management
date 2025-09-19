@@ -7,7 +7,6 @@ import { AvailableUserRoles, UserRolesEnum } from "../utils/constants.js";
 import { User } from "../models/user.models.js";
 
 const getProjects = asyncHandler(async (req, res) => {
-  // get all projects
   const projects = await Project.find({ createdBy: req.user._id });
 
   return res
@@ -16,7 +15,6 @@ const getProjects = asyncHandler(async (req, res) => {
 });
 
 const getProjectById = asyncHandler(async (req, res) => {
-  // get project by id
   const { projectId } = req.params;
   const project = await Project.findById(projectId);
 
@@ -30,7 +28,6 @@ const getProjectById = asyncHandler(async (req, res) => {
 });
 
 const createProject = asyncHandler(async (req, res) => {
-  // create project
   const { name, description } = req.body;
   if (!name) {
     throw new ApiError(400, "Name is not defined");
@@ -59,8 +56,6 @@ const createProject = asyncHandler(async (req, res) => {
 });
 
 const updateProject = asyncHandler(async (req, res) => {
-  // update project
-
   const { projectId } = req.params;
   const { name, description } = req.body;
 
@@ -83,7 +78,6 @@ const updateProject = asyncHandler(async (req, res) => {
 });
 
 const deleteProject = asyncHandler(async (req, res) => {
-  // delete project
   const { projectId } = req.params;
   const project = await Project.findByIdAndDelete(projectId);
 
@@ -97,7 +91,6 @@ const deleteProject = asyncHandler(async (req, res) => {
 });
 
 const getProjectMembers = asyncHandler(async (req, res) => {
-  // get project members
   const { projectId } = req.params;
   const project = await Project.findById(projectId);
 
@@ -121,7 +114,6 @@ const getProjectMembers = asyncHandler(async (req, res) => {
 });
 
 const addMemberToProject = asyncHandler(async (req, res) => {
-  // add member to project
   const { email, role } = req.body;
   const { projectId } = req.params;
   const user = await User.findOne({ email });
@@ -154,7 +146,6 @@ const addMemberToProject = asyncHandler(async (req, res) => {
 });
 
 const deleteMember = asyncHandler(async (req, res) => {
-  // delete member from project
   const { projectId, userId } = req.params;
 
   if (!projectId && !userId) {
@@ -184,7 +175,6 @@ const deleteMember = asyncHandler(async (req, res) => {
 });
 
 const updateMemberRole = asyncHandler(async (req, res) => {
-  // update member role
   const { projectId, userId } = req.params;
   const { newRole } = req.body;
 

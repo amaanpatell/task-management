@@ -1,13 +1,10 @@
-// boilderplate code
-
-import mongoose from "mongoose";
 import { ProjectNote } from "../models/note.models";
 import { Project } from "../models/project.models";
 import { ApiError } from "../utils/api-error";
 import { ApiResponse } from "../utils/api-response";
+import { asyncHandler } from "../utils/async-handler";
 
-const getNotes = async (req, res) => {
-  // get all notes
+const getNotes = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
 
   const project = await Project.findById(projectId);
@@ -27,10 +24,9 @@ const getNotes = async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, notes, "Notes Fetched sucessfully"));
-};
+});
 
-const getNoteById = async (req, res) => {
-  // get note by id
+const getNoteById = asyncHandler(async (req, res) => {
   const { noteId } = req.params;
 
   const note = await ProjectNote.findById(noteId).populate(
@@ -44,10 +40,9 @@ const getNoteById = async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, note, "Note Fetched sucessfully"));
-};
+});
 
-const createNote = async (req, res) => {
-  // create note
+const createNote = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
   const { content } = req.body;
 
@@ -74,10 +69,9 @@ const createNote = async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, populatedNote, "Note created sucessfully"));
-};
+});
 
-const updateNote = async (req, res) => {
-  // update note
+const updateNote = asyncHandler(async (req, res) => {
   const { noteId } = req.params;
   const { content } = req.body;
 
@@ -100,10 +94,9 @@ const updateNote = async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, note, "Note Update sucessfully"));
-};
+});
 
-const deleteNote = async (req, res) => {
-  // delete note
+const deleteNote = asyncHandler(async (req, res) => {
   const { noteId } = req.params;
 
   const existingNote = await ProjectNote.findById(noteId);
@@ -121,6 +114,6 @@ const deleteNote = async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, note, "Note delete sucessfully"));
-};
+});
 
 export { createNote, deleteNote, getNoteById, getNotes, updateNote };
