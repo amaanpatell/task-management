@@ -37,7 +37,7 @@ projectRoutes.put(
 );
 
 projectRoutes.delete(
-  ":projectId",
+  "/:projectId",
   checkAuth,
   validateProjectPermission([UserRolesEnum.ADMIN]),
   deleteProject

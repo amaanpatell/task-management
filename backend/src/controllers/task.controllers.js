@@ -84,31 +84,64 @@ const createTask = asyncHandler(async (req, res) => {
 });
 
 const updateTask = asyncHandler(async (req, res) => {
-  const { projectId } = req.params;
-  const { title, description, assignedTo, status, attachments } = req.body;
+  const { taskId } = req.params;
+  const { title, description, status, assignedTo } = req.body;
 
-  const existingTask = await Task.findById(projectId);
+  console.log("Update task request body:", req.body);
+
+  const existingTask = await Task.findById(taskId);
 
   if (!existingTask) {
-    throw new ApiError(400, "Task not found");
+    throw new ApiError(404, "Task not found");
   }
 
-  const task = await Task.findByIdAndUpdate(
-    projectId,
-    {
-      title,
-      description,
-      assignedTo: assignedTo ? assignedTo : undefined,
-      assignedBy: req.user._id,
-      status,
-      attachments,
-    },
-    { new: true }
-  ).populate("assignedTo, assignedBy username email fullname avatar");
+  // Get existing attachments
+  const existingAttachments = existingTask.attachments || [];
 
-  if (!task) {
-    throw new ApiError(400, "Failed to update Task");
+  // Ensure req.files is an array or empty array if undefined
+  const files = req.files || [];
+
+  // Create new attachments array from uploaded files
+  const newAttachments = files.map((file) => {
+    return {
+      url: `${process.env.SERVER_URL}/images/${file.originalname}`,
+      mimetype: file.mimetype,
+      size: file.size,
+    };
+  });
+
+  // Combine existing and new attachments
+  const allAttachments = [...existingAttachments, ...newAttachments];
+
+  // Create update object with only the fields that are provided
+  const updateFields = {
+    attachments: allAttachments,
+    assignedBy: new mongoose.Types.ObjectId(req.user._id),
+  };
+
+  // Only update fields that are provided in the request
+  if (title !== undefined) updateFields.title = title;
+  if (description !== undefined) updateFields.description = description;
+  if (status !== undefined) updateFields.status = status;
+
+  // Handle assignedTo field carefully
+  if (assignedTo !== undefined) {
+    updateFields.assignedTo = assignedTo
+      ? new mongoose.Types.ObjectId(assignedTo)
+      : undefined;
+  } else if (existingTask.assignedTo) {
+    // Keep the existing assignedTo if not provided in the request
+    updateFields.assignedTo = existingTask.assignedTo;
   }
+
+  console.log("Update fields:", updateFields);
+
+  // Update the task and populate the assignedTo field in the response
+  const task = await Task.findByIdAndUpdate(taskId, updateFields, {
+    new: true,
+  }).populate("assignedTo", "username fullName avatar");
+
+  console.log("Updated task:", task);
 
   return res
     .status(200)
@@ -137,7 +170,11 @@ const deleteTask = asyncHandler(async (req, res) => {
 
 const createSubTask = asyncHandler(async (req, res) => {
   const { taskId } = req.params;
-  const { title, isCompleted } = req.body;
+  const { title } = req.body;
+
+  if (!title) {
+    throw new ApiError(400, "Title is required");
+  }
 
   const task = await Task.findById(taskId);
 
@@ -147,7 +184,7 @@ const createSubTask = asyncHandler(async (req, res) => {
 
   const subtask = await SubTask.create({
     title,
-    isCompleted,
+    task: taskId,
     createdBy: req.user._id,
   });
 
@@ -155,15 +192,9 @@ const createSubTask = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Failed to create subtask");
   }
 
-  const populatedSubtask = await SubTask.findById(subtask._id).populate(
-    "createdBy username email fullname avatar"
-  );
-
   return res
     .status(201)
-    .json(
-      new ApiResponse(201, populatedSubtask, "Subtask created successfully")
-    );
+    .json(new ApiResponse(201, subtask, "Subtask created successfully"));
 });
 
 const updateSubTask = asyncHandler(async (req, res) => {
