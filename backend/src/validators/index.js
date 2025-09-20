@@ -1,5 +1,8 @@
-import { body, param } from "express-validator";
-import { AvailableUserRoles } from "../utils/constants.js";
+import { body } from "express-validator";
+import {
+  AvailableTaskStatuses,
+  AvailableUserRoles,
+} from "../utils/constants.js";
 
 const userRegisterValidator = () => {
   return [
@@ -18,10 +21,11 @@ const userRegisterValidator = () => {
       .isLength({ min: 3 })
       .withMessage("Username must be at lease 3 characters long"),
     body("password").trim().notEmpty().withMessage("Password is required"),
-    body("role")
+    body("fullName")
       .optional()
-      .isIn(AvailableUserRoles)
-      .withMessage("Invalid user role"),
+      .trim()
+      .notEmpty()
+      .withMessage("Full name is required"),
   ];
 };
 
@@ -54,20 +58,66 @@ const userResetForgottenPasswordValidator = () => {
   return [body("newPassword").notEmpty().withMessage("Password is required")];
 };
 
-const userAssignRoleValidator = () => {
+const createProjectValidator = () => {
   return [
+    body("name").notEmpty().withMessage("Name is required"),
+    body("description").optional(),
+  ];
+};
+const addMemberToProjectValidator = () => {
+  return [
+    body("email")
+      .trim()
+      .notEmpty()
+      .withMessage("Email is required")
+      .isEmail()
+      .withMessage("Email is invalid"),
     body("role")
-      .optional()
+      .notEmpty()
+      .withMessage("Role is required")
       .isIn(AvailableUserRoles)
-      .withMessage("Invalid user role"),
+      .withMessage("Role is invalid"),
   ];
 };
 
+const createTaskValidator = () => {
+  return [
+    body("title").notEmpty().withMessage("Title is required"),
+    body("description").optional(),
+    body("assignedTo").notEmpty().withMessage("Assigned to is required"),
+    body("status")
+      .optional()
+      .notEmpty()
+      .withMessage("Status is required")
+      .isIn(AvailableTaskStatuses),
+  ];
+};
+
+const updateTaskValidator = () => {
+  return [
+    body("title").optional(),
+    body("description").optional(),
+    body("status")
+      .optional()
+      .isIn(AvailableTaskStatuses)
+      .withMessage("Status is invalid"),
+    body("assignedTo").optional(),
+  ];
+};
+
+const notesValidator = () => {
+  return [body("content").notEmpty().withMessage("Content is required")];
+};
+
 export {
+  addMemberToProjectValidator,
+  createProjectValidator,
+  createTaskValidator,
+  notesValidator,
+  updateTaskValidator,
   userChangeCurrentPasswordValidator,
   userForgotPasswordValidator,
   userLoginValidator,
   userRegisterValidator,
   userResetForgottenPasswordValidator,
-  userAssignRoleValidator
 };

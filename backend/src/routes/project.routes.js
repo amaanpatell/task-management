@@ -11,60 +11,49 @@ import {
   updateProject,
 } from "../controllers/project.controllers.js";
 import {
-  checkAuth,
   validateProjectPermission,
+  verifyJWT,
 } from "../middlewares/auth.middlewares.js";
+import { validate } from "../middlewares/validator.middlewares.js";
 import { AvailableUserRoles, UserRolesEnum } from "../utils/constants.js";
+import {
+  addMemberToProjectValidator,
+  createProjectValidator,
+} from "../validators/index.js";
 
-const projectRoutes = Router();
+const router = Router();
 
-projectRoutes.get("/", checkAuth, getProjects);
+router.use(verifyJWT);
 
-projectRoutes.post("/", checkAuth, createProject);
+router
+  .route("/")
+  .get(getProjects)
+  .post(createProjectValidator(), validate, createProject);
 
-projectRoutes.get(
-  "/:projectId",
-  checkAuth,
-  validateProjectPermission(AvailableUserRoles),
-  getProjectById
-);
+router
+  .route("/:projectId")
+  .get(validateProjectPermission(AvailableUserRoles), getProjectById)
+  .put(
+    validateProjectPermission([UserRolesEnum.ADMIN]),
+    createProjectValidator(),
+    validate,
+    updateProject
+  )
+  .delete(validateProjectPermission([UserRolesEnum.ADMIN]), deleteProject);
 
-projectRoutes.put(
-  "/:projectId",
-  checkAuth,
-  validateProjectPermission([UserRolesEnum.ADMIN]),
-  updateProject
-);
+router
+  .route("/:projectId/members")
+  .get(getProjectMembers)
+  .post(
+    validateProjectPermission([UserRolesEnum.ADMIN]),
+    addMemberToProjectValidator(),
+    validate,
+    addMemberToProject
+  );
 
-projectRoutes.delete(
-  "/:projectId",
-  checkAuth,
-  validateProjectPermission([UserRolesEnum.ADMIN]),
-  deleteProject
-);
+router
+  .route("/:projectId/members/:userId")
+  .put(validateProjectPermission([UserRolesEnum.ADMIN]), updateMemberRole)
+  .delete(validateProjectPermission([UserRolesEnum.ADMIN]), deleteMember);
 
-// Members
-projectRoutes.get("/:projectId/members", checkAuth, getProjectMembers);
-
-projectRoutes.post(
-  "/:projectId/members",
-  checkAuth,
-  validateProjectPermission([UserRolesEnum.ADMIN]),
-  addMemberToProject
-);
-
-projectRoutes.put(
-  "/:projectId/members/:userId",
-  checkAuth,
-  validateProjectPermission([UserRolesEnum.ADMIN]),
-  updateMemberRole
-);
-
-projectRoutes.delete(
-  "/:projectId/members/:userId",
-  checkAuth,
-  validateProjectPermission([UserRolesEnum.ADMIN]),
-  deleteMember
-);
-
-export default projectRoutes;
+export default router;

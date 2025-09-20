@@ -1,41 +1,42 @@
 import { Router } from "express";
 import {
-  checkAuth,
-  validateProjectPermission,
-} from "../middlewares/auth.middlewares.js";
-import {
   createNote,
   deleteNote,
   getNoteById,
+  getNotes,
   updateNote,
 } from "../controllers/note.controllers.js";
-import { AvailableUserRoles } from "../utils/constants.js";
+import {
+  validateProjectPermission,
+  verifyJWT,
+} from "../middlewares/auth.middlewares.js";
+import { validate } from "../middlewares/validator.middlewares.js";
+import { AvailableUserRoles, UserRolesEnum } from "../utils/constants.js";
+import { notesValidator } from "../validators/index.js";
 
-const noteRoutes = Router();
+const router = Router();
 
-noteRoutes.get("/:projectId", checkAuth, getNotes);
+router.use(verifyJWT);
 
-noteRoutes.post("/:projectId", checkAuth, createNote);
+router
+  .route("/:projectId")
+  .get(validateProjectPermission(AvailableUserRoles), getNotes)
+  .post(
+    validateProjectPermission([UserRolesEnum.ADMIN]),
+    notesValidator(),
+    validate,
+    createNote,
+  );
 
-noteRoutes.get(
-  "/:projectId/n/noteId",
-  checkAuth,
-  validateProjectPermission(AvailableUserRoles),
-  getNoteById
-);
+router
+  .route("/:projectId/n/:noteId")
+  .get(validateProjectPermission(AvailableUserRoles), getNoteById)
+  .put(
+    validateProjectPermission([UserRolesEnum.ADMIN]),
+    notesValidator(),
+    validate,
+    updateNote,
+  )
+  .delete(validateProjectPermission([UserRolesEnum.ADMIN]), deleteNote);
 
-noteRoutes.put(
-  "/:projectId/n/noteId",
-  checkAuth,
-  validateProjectPermission([UserRolesEnum.ADMIN]),
-  updateNote
-);
-
-noteRoutes.delete(
-  "/:projectId/n/noteId",
-  checkAuth,
-  validateProjectPermission([UserRolesEnum.ADMIN]),
-  deleteNote
-);
-
-export default noteRoutes;
+export default router;

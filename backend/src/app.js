@@ -1,30 +1,38 @@
-import express, { urlencoded } from "express";
-import cors from "cors";
 import cookieParser from "cookie-parser";
-//router imports
-import healthCheckRouter from "./routes/healthcheck.routes.js"
-import { errorHandler } from "./middlewares/error.middlewares.js";
-import authRoutes from "./routes/auth.routes.js";
-import projectRoutes from "./routes/project.routes.js";
+import cors from "cors";
+import express from "express";
 
 const app = express();
+app.use(express.json({ limit: "16kb" }));
+app.use(express.urlencoded({ extended: true, limit: "16kb" }));
+app.use(express.static("public")); // configure static file to save images locally
+app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "*",
+    origin: process.env.CORS_ORIGIN?.split(",") || "http://localhost:5173",
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
-app.use(express.json());
-app.use(cookieParser());
-app.use(urlencoded({ extended: true }));
 
-app.use("/api/v1/healthcheck", healthCheckRouter)
-app.use("/api/v1/auth", authRoutes)
-app.use("/api/v1/projects", projectRoutes)
+import { errorHandler } from "./middlewares/error.middlewares.js";
+import authRouter from "./routes/auth.routes.js";
+import healthcheckRouter from "./routes/healthcheck.routes.js";
+import noteRouter from "./routes/note.routes.js";
+import projectRouter from "./routes/project.routes.js";
+import taskRouter from "./routes/task.routes.js";
 
+// * healthcheck
+app.use("/api/v1/healthcheck", healthcheckRouter);
+
+// * app routes
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/projects", projectRouter);
+app.use("/api/v1/tasks", taskRouter); 
+app.use("/api/v1/notes", noteRouter);
 
 app.use(errorHandler);
-
 
 export default app;
