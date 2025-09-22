@@ -29,14 +29,6 @@ const getProjectById = asyncHandler(async (req, res) => {
 
 const createProject = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
-  if (!name) {
-    throw new ApiError(400, "Name is not defined");
-  }
-
-  const projectExists = await Project.findOne({ name });
-  if (projectExists) {
-    throw new ApiError(400, "Project already exists");
-  }
 
   const project = await Project.create({
     name,

@@ -1,9 +1,11 @@
+import mongoose from "mongoose";
 import { Project } from "../models/project.models.js";
 import { SubTask } from "../models/subtask.models.js";
 import { Task } from "../models/task.models.js";
 import { ApiError } from "../utils/api-error.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { asyncHandler } from "../utils/async-handler.js";
+import { UserRolesEnum } from "../utils/constants.js";
 
 const getTasks = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
@@ -21,27 +23,26 @@ const getTasks = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Task not found");
   }
 
-  return (
-    res.status(200),
-    json(new ApiResponse(200, task, "Task fetched suceessfully "))
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, task, "Task fetched suceessfully "));
 });
 
 const getTaskById = asyncHandler(async (req, res) => {
   const { taskId } = req.params;
 
-  const task = await Task.findById(taskId).populate(
-    "assignedTo, assignedBy username email fullname avatar"
-  );
+  const task = await Task.findById(taskId)
+    .populate("assignedTo", "_id username fullName avatar")
+    .populate("assignedBy", "_id username fullName avatar")
+    .populate("project", "_id name description");
 
   if (!task || task.length === 0) {
     throw new ApiError(404, "Task not found");
   }
 
-  return (
-    res.status(200),
-    json(new ApiResponse(200, task, "Task fetched suceessfully "))
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, task, "Task fetched suceessfully "));
 });
 
 const createTask = asyncHandler(async (req, res) => {
@@ -201,28 +202,28 @@ const updateSubTask = asyncHandler(async (req, res) => {
   const { subTaskId } = req.params;
   const { title, isCompleted } = req.body;
 
-  const existingSubTask = await SubTask.findById(subTaskId);
+  let subTask = await SubTask.findById(subTaskId);
 
-  if (!existingSubTask) {
-    throw new ApiError(400, "Sub Task not found");
+  if (!subTask) {
+    throw new ApiError(404, "Sub task not found");
   }
 
-  const subtask = await SubTask.findByIdAndUpdate(
+  subTask = await SubTask.findByIdAndUpdate(
     subTaskId,
     {
-      title,
+      title: [UserRolesEnum.ADMIN, UserRolesEnum.PROJECT_ADMIN].includes(
+        req?.user?.role
+      )
+        ? title
+        : undefined, // only allow admins and project admins to update the title
       isCompleted,
     },
     { new: true }
-  ).populate("createdBy, username email fullname avatar");
-
-  if (!subtask) {
-    throw new ApiError(400, "Failed to update Sub Task");
-  }
+  );
 
   return res
     .status(200)
-    .json(new ApiResponse(200, note, "Sub task Updated sucessfully"));
+    .json(new ApiResponse(200, subTask, "Sub task updated successfully"));
 });
 
 const deleteSubTask = asyncHandler(async (req, res) => {

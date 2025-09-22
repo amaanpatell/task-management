@@ -15,7 +15,7 @@ const getNotes = asyncHandler(async (req, res) => {
 
   const notes = await ProjectNote.find({
     project: projectId,
-  }).populate("createdBy, username email fullname avatar");
+  }).populate("createdBy", "username email fullname avatar");
 
   if (!notes) {
     throw new ApiError(400, "Notes not found");
@@ -30,7 +30,7 @@ const getNoteById = asyncHandler(async (req, res) => {
   const { noteId } = req.params;
 
   const note = await ProjectNote.findById(noteId).populate(
-    "createdBy, username email fullname avatar"
+    "createdBy", "username email fullname avatar"
   );
 
   if (!note) {
@@ -63,7 +63,7 @@ const createNote = asyncHandler(async (req, res) => {
   }
 
   const populatedNote = await ProjectNote.findById(note._id).populate(
-    "createdBy, username email fullname avatar"
+    "createdBy", "username email fullname avatar"
   );
 
   return res
@@ -85,7 +85,7 @@ const updateNote = asyncHandler(async (req, res) => {
     noteId,
     { content },
     { new: true }
-  ).populate("createdBy, username email fullname avatar");
+  ).populate("createdBy", "username email fullname avatar");
 
   if (!note) {
     throw new ApiError(400, "Failed to update note");
