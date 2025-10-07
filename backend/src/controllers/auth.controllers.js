@@ -71,6 +71,10 @@ const registerUser = asyncHandler(async (req, res) => {
     ),
   });
 
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+    user._id
+  );
+
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
   );
@@ -81,10 +85,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
     .json(
       new ApiResponse(
         200,
-        { user: createdUser },
+        { user: createdUser, accessToken, refreshToken },
         "Users registered successfully and verification email has been sent on your email."
       )
     );
@@ -99,7 +105,7 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findOne({
-    $or: [{ username}, {email }],
+    $or: [{ username }, { email }],
   });
 
   if (!user) {
@@ -127,7 +133,7 @@ const loginUser = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { user: loggedInUser, accessToken, refreshAccessToken },
+        { user: loggedInUser, accessToken, refreshToken },
         "User logged in successfully"
       )
     );
@@ -246,8 +252,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     return res
       .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", newRefreshToken, options)
+      .cookie("accessToken", accessToken, cookieOptions)
+      .cookie("refreshToken", newRefreshToken, cookieOptions)
       .json(
         new ApiResponse(
           200,
@@ -305,7 +311,7 @@ const resetForgottenPassword = asyncHandler(async (req, res) => {
     .update(resetToken)
     .digest("hex");
 
-  const user = User.findOne({
+  const user = await User.findOne({
     forgotPasswordToken: hashedToken,
     forgotPasswordExpiry: { $gt: Date.now() },
   });
@@ -317,7 +323,7 @@ const resetForgottenPassword = asyncHandler(async (req, res) => {
   user.forgotPasswordToken = undefined;
   user.forgotPasswordExpiry = undefined;
   user.password = newPassword;
-  await user.save;
+  await user.save();
 
   return res
     .status(200)
