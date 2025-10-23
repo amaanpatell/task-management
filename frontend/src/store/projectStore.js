@@ -236,11 +236,9 @@ const useProjectStore = create((set, get) => ({
     try {
       await projectService.deleteProject(projectId);
       set((state) => ({
-        projects: state.projects.filter((projectItem) => {
-          // Handle both structures: {project: {...}} OR direct project object
-          const project = projectItem.project || projectItem;
-          return project._id !== projectId;
-        }),
+        projects: state.projects.filter(
+          (projectItem) => projectItem.project._id !== projectId
+        ),
         currentProject:
           state.currentProject?._id === projectId ? null : state.currentProject,
         isLoading: false,

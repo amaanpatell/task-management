@@ -31,7 +31,12 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { TeamSwitcher } from "./team-switcher";
-import { AudioWaveform, Command, GalleryVerticalEnd, Notebook } from "lucide-react";
+import {
+  AudioWaveform,
+  Command,
+  GalleryVerticalEnd,
+  Notebook,
+} from "lucide-react";
 import useAuthStore from "@/store/authStore";
 
 const data = {
@@ -51,7 +56,7 @@ const data = {
       url: "#",
       icon: Notebook,
     },
-    
+
     {
       title: "Projects",
       url: "#",
@@ -169,21 +174,6 @@ export function AppSidebar({ ...props }) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <a href="#">
-                <GalleryVerticalEnd className="!size-5" />
-                <span className="text-base font-semibold">
-                  Project Managment.
-                </span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />

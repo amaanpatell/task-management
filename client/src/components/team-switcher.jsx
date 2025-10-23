@@ -1,13 +1,11 @@
 import * as React from "react";
-import { ChevronsUpDown, Plus } from "lucide-react";
+import { ChevronsUpDown, Trash2 } from "lucide-react";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -24,7 +22,7 @@ export function TeamSwitcher({ teams }) {
   const [activeTeam, setActiveTeam] = React.useState(teams[0]);
   const [activeProject, setActiveProject] = React.useState(null);
 
-  const { projects, fetchProjects, error } = useProjectStore();
+  const { projects, fetchProjects, deleteProject, error } = useProjectStore();
 
   useEffect(() => {
     // Fetch projects on component mount
@@ -34,14 +32,44 @@ export function TeamSwitcher({ teams }) {
   // Set the first project as active when projects are loaded
   useEffect(() => {
     if (projects && projects.length > 0 && !activeProject) {
-      setActiveProject(projects[0]);
+      // Access the project object correctly based on Zustand store structure
+      const firstProject = projects[0].project || projects[0];
+      setActiveProject(firstProject);
     }
   }, [projects, activeProject]);
+
+  const handleDeleteProject = async (e, projectId) => {
+    e.stopPropagation(); // Prevent dropdown from closing
+
+    try {
+      // Update UI optimistically before API call
+      const remainingProjects = projects.filter((item) => {
+        const project = item.project || item;
+        return project._id !== projectId;
+      });
+
+      // If deleted project was active, set first available project or null
+      if (activeProject?._id === projectId) {
+        if (remainingProjects.length > 0) {
+          const nextProject =
+            remainingProjects[0].project || remainingProjects[0];
+          setActiveProject(nextProject);
+        } else {
+          setActiveProject(null);
+        }
+      }
+
+      await deleteProject(projectId);
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      // Refetch projects to restore state if delete failed
+      fetchProjects().catch(console.error);
+    }
+  };
 
   if (!activeTeam) {
     return null;
   }
-
 
   return (
     <SidebarMenu>
@@ -75,26 +103,33 @@ export function TeamSwitcher({ teams }) {
             <DropdownMenuLabel className="text-muted-foreground text-xs">
               Projects
             </DropdownMenuLabel>
-            {projects && projects.map((project, index) => (
-              <DropdownMenuItem
-                key={project._id}
-                onClick={() => setActiveProject(project)}
-                className="gap-2 p-2"
-              >
-                <div className="flex size-6 items-center justify-center rounded-md border">
-                  <activeTeam.logo className="size-3.5 shrink-0" />
-                </div>
-                {project.name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2">
-              <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
-                <Plus className="size-4" />
-              </div>
-              <div className="text-muted-foreground font-medium">Add project</div>
-            </DropdownMenuItem>
+            {projects &&
+              projects.map((item, index) => {
+                // Handle both structures: {project: {...}, role: ...} OR direct project object
+                const project = item.project || item;
+
+                return (
+                  <DropdownMenuItem
+                    key={project._id || `project-${index}`}
+                    onClick={() => setActiveProject(project)}
+                    className="gap-2 p-2 justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="flex size-6 items-center justify-center rounded-md border">
+                        <activeTeam.logo className="size-3.5 shrink-0" />
+                      </div>
+                      {project.name}
+                    </div>
+                    <button
+                      onClick={(e) => handleDeleteProject(e, project._id)}
+                      className="text-muted-foreground hover:text-destructive transition-colors"
+                      aria-label="Delete project"
+                    >
+                      <Trash2 className="size-4 text-destructive" />
+                    </button>
+                  </DropdownMenuItem>
+                );
+              })}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

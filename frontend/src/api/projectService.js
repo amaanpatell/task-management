@@ -1,19 +1,19 @@
 import axiosInstance from "./axios";
 
 const projectService = {
-  // Get All Projects
+  // Get all projects
   getProjects: async () => {
     const response = await axiosInstance.get("/projects");
     return response.data;
   },
 
-  // Get Project by ID
+  // Get project by ID
   getProjectById: async (projectId) => {
     const response = await axiosInstance.get(`/projects/${projectId}`);
     return response.data;
   },
 
-  // Create a new Project
+  // Create a new project
   createProject: async (projectData) => {
     const response = await axiosInstance.post("/projects", projectData);
     return response.data;
@@ -57,12 +57,14 @@ const projectService = {
     );
     return response.data;
   },
+
   // Remove member from project
   removeMemberFromProject: async (projectId, userId) => {
-    const response = await axiosInstance.delete(`
-        /projects/${projectId}/members/${userId}`);
+    const response = await axiosInstance.delete(
+      `/projects/${projectId}/members/${userId}`
+    );
     return response.data;
   },
 };
 
-export default projectService
+export default projectService;
