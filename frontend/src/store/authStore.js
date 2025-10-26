@@ -4,7 +4,7 @@ import { StorageKeys } from "../utils/constants";
 
 const getAvatarUrl = (user) => {
   if (!user) return null;
-  return user.avatar?.url || "https://via.placeholder.com/200x200.png";
+  return user.avatar?.url || `https://ui-avatars.com/api/?name=John+Doe`;
 };
 
 const initializeAuth = async (set) => {
