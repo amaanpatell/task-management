@@ -33,6 +33,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
+  sameSite: 'None'
 };
 
 const registerUser = asyncHandler(async (req, res) => {
