@@ -47,7 +47,7 @@ export default function RegisterForm({ onLoginClick }) {
 
     try {
       const userData = {
-        fullName: values.fullName,
+        fullname: values.fullName,
         username: values.username,
         email: values.email,
         password: values.password,
