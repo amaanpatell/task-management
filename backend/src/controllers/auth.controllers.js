@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/user.models.js";
 import { ApiError } from "../utils/api-error.js";
 import { asyncHandler } from "../utils/async-handler.js";
-import { UserRolesEnum } from "../utils/constants.js";
 import {
   emailVerificationMailgenContent,
   forgotPasswordMailgenContent,
@@ -32,7 +31,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  secure: true,
   sameSite: 'None'
 };
 
@@ -72,10 +71,6 @@ const registerUser = asyncHandler(async (req, res) => {
     ),
   });
 
-  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
-    user._id
-  );
-
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
   );
@@ -86,12 +81,10 @@ const registerUser = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .cookie("accessToken", accessToken, cookieOptions)
-    .cookie("refreshToken", refreshToken, cookieOptions)
     .json(
       new ApiResponse(
         200,
-        { user: createdUser, accessToken, refreshToken },
+        { user: createdUser },
         "Users registered successfully and verification email has been sent on your email."
       )
     );
